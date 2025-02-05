@@ -1,6 +1,8 @@
 package com.incrementalqol;
 
 import net.minecraft.client.gui.hud.ClientBossBar;
+
+import java.lang.System.Logger;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,12 +49,13 @@ public class Task {
     );
 
     private static final List<Pattern> COMBAT_PATTERNS = List.of(
-            Pattern.compile("Slay ?(?:the)?(?<type>.+) \\((?<progress>\\d+[km]?)if /(?<amount>\\d+[km]?)"),
+            Pattern.compile("Slay ?(?:the )?(?<type>.+) \\((?<progress>\\d+[km]?)\\/(?<amount>\\d+[km]?)"),
             Pattern.compile("Collect (?<amount>\\d+[.,]?\\d*[km]?) drops from (?<type>.+) \\(?(?<progress>\\d+[.,]?\\d*[km]?)")
     );
 
     private static final List<Pattern> FISHING_PATTERNS = List.of(
             Pattern.compile("Spear (?<type>.+) without missing (?<amount>\\d+[km]?).+\\((?<progress>\\d+[km]?)"),
+            Pattern.compile("Collect (?<amount>\\d+[.,]?\\d*[km]?) drops from (?<type>.+) \\(?(?<progress>\\d+[.,]?\\d*[km]?)"),
             Pattern.compile("Collect (?<amount>\\d+[.,]?\\d*[km]?) (?<type>.+) \\(?(?<progress>\\d+[.,]?\\d*[km]?)")
     );
 
@@ -255,17 +258,13 @@ public class Task {
                         " (" + this.progress + "/" + this.targetAmount + ")§f";
             } else {
                 renderedString = getLocation(false) + " " +
-                        this.taskType + ": §6§n" + (isShiny ? "Shiny " : "") + normalizedTaskTarget() +
+                        this.taskType + ": " + (isTicket ? "§5" : "§6") + "§n" + (isShiny ? "Shiny " : "") + normalizedTaskTarget() +
                         "§r (§9" + this.progress + "§f/§c" + this.targetAmount + "§f)";
             }
         }
 
 
         calculateDisplayLength(renderedString);
-
-        if (isTicket){
-            return renderedString.replaceAll("§[0-9a-fA-F]", "§5");
-        }
         return renderedString;
     }
 
