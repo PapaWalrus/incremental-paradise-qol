@@ -2,7 +2,6 @@ package com.incrementalqol;
 
 import net.minecraft.client.gui.hud.ClientBossBar;
 
-import java.lang.System.Logger;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

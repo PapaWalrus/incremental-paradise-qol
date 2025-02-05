@@ -457,7 +457,6 @@ public class EntryPointClient implements ClientModInitializer {
         String type = taskDetails[2];
 
         LOGGER.warn(type + " xDDDDDD");
-        LOGGER.warn("Task Type: " + type + "; Warp: ");
 
         Task newTask = new Task(stack.getName().getString(), description, "/warp ", 1, false, world, number, type,false);
         if (stack.getItem().getName().getString().contains("Written")) {
