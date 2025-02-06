@@ -81,6 +81,10 @@ public class Task {
         this.isTicket = isTicket;
 
         determineTaskAttributes();
+        // Might break with numbers large enough to have a suffix, but doing ticket tasks at that point is a little silly...
+        if(isTicket) {
+            this.completed = this.progress.equals(this.targetAmount);
+        }
     }
 
     private void determineTaskAttributes() {
@@ -242,7 +246,6 @@ public class Task {
 
     public String render(boolean completed) {
         String renderedString;
-
 
         if (taskType.equals("Quest")) {
             if (completed) {
