@@ -11,11 +11,11 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.incrementalqol.EntryPointClient.MOD_ID;
+import static com.incrementalqol.modules.OptionsModule.MOD_ID;
 
 public class ConfigHandler {
 
@@ -33,7 +33,7 @@ public class ConfigHandler {
             configInstance = loadOptions();
         } catch (Exception e) {
             LOGGER.error("Failed to initialize configuration: {}", e.getMessage(), e);
-            configInstance = new Config(true, 0, 0, false,1,150,false); // Fallback to default config
+            configInstance = new Config(true, 0, 0, false,1,150,false, false); // Fallback to default config
         }
     }
 
@@ -70,7 +70,7 @@ public class ConfigHandler {
             );
         } else {
             LOGGER.warn("Configuration file not found. Creating default configuration.");
-            Config defaultConfig = new Config(true, 0, 0, false,1,150,false);
+            Config defaultConfig = new Config(true, 0, 0, false,1,150,false, false);
             saveDefaultConfig(defaultConfig);
             return defaultConfig;
         }
