@@ -54,7 +54,7 @@ public class Task {
     );
 
     private static final List<Pattern> COMBAT_PATTERNS = List.of(
-            Pattern.compile("Slay ?(?:the)?(?<type>.+) \\((?<progress>[0-9.,]+[km]?)/(?<amount>[0-9.,]+[km]?)"),
+            Pattern.compile("Slay (?:the )?(?<type>.+) \\((?<progress>[0-9.,]+[km]?)/(?<amount>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
@@ -161,9 +161,15 @@ public class Task {
     public String getWarp() {
         if (this.descriptor != null) {
             return this.descriptor.getCommand();
-        } else {
-            return this.warp;
         }
+        return null;
+    }
+
+    public String getFallbackWarp(int index) {
+        if (this.descriptor != null) {
+            return this.descriptor.getFallbackCommand(index);
+        }
+        return null;
     }
 
     public String getTaskType() {
@@ -250,10 +256,6 @@ public class Task {
     private String normalizedTaskTarget() {
         if (taskTarget.isEmpty()) {
             return taskTarget;
-        }
-
-        if (this.isShiny) {
-            return "Shiny " + taskTarget;
         }
 
         if (this.isLarge) {
