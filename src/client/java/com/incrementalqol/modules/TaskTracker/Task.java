@@ -1,13 +1,18 @@
 package com.incrementalqol.modules.TaskTracker;
 
 import com.incrementalqol.common.data.TaskCollection;
+import com.incrementalqol.common.utils.ConfiguredLogger;
+import com.incrementalqol.modules.SkillManager.AutoSkillModule;
 import net.minecraft.client.gui.hud.ClientBossBar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Task {
+    public static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
     public final TaskCollection.TaskDescriptor descriptor;
     private final String name;
     private final String description;
@@ -49,13 +54,13 @@ public class Task {
     );
 
     private static final List<Pattern> FORAGING_PATTERNS = List.of(
-            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<large>Large )?(?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
+            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<large>Large )?(?<type>.+) with (?<constraint>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<large>Large )?(?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
 
     private static final List<Pattern> COMBAT_PATTERNS = List.of(
             Pattern.compile("Slay (?:the )?(?<type>.+) \\((?<progress>[0-9.,]+[km]?)/(?<amount>[0-9.,]+[km]?)"),
-            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
+            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) with (?<constraint>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
 
@@ -63,7 +68,7 @@ public class Task {
             Pattern.compile("Spear [0-9.,]+ (?<type>.+) (?<constraint>in a row without missing) (?<amount>[0-9.,]+[km]?).+\\((?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<color>.+) colored (?<type>.+) using a Fishing Spear \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) using a Fishing Spear \\(?(?<progress>[0-9.,]+[km]?)"),
-            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
+            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) with (?<constraint>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) drops from (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
@@ -71,12 +76,12 @@ public class Task {
     private static final List<Pattern> MINING_PATTERNS = List.of(
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) from (?<shiny>Shiny) Ores \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<shiny>Shiny) (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
-            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
+            Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) with (?<constraint>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Collect (?<amount>[0-9.,]+[km]?) (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
 
     private static final List<Pattern> FARMING_PATTERNS = List.of(
-            Pattern.compile("Harvest (?<amount>[0-9.,]+[km]?) (?<type>.+) with (?<constraint>\\.+) \\(?(?<progress>[0-9.,]+[km]?)"),
+            Pattern.compile("Harvest (?<amount>[0-9.,]+[km]?) (?<type>.+) with (?<constraint>.+) \\(?(?<progress>[0-9.,]+[km]?)"),
             Pattern.compile("Harvest (?<amount>[0-9.,]+[km]?) (?<type>.+) \\(?(?<progress>[0-9.,]+[km]?)")
     );
 
@@ -88,7 +93,7 @@ public class Task {
         this.warp = warp;
         this.strWidth = strWidth;
         this.completed = completed;
-        this.generalProgressPattern = Pattern.compile(this.name + " \\(?(?<progress>[0-9.,]+[km]?)");
+        this.generalProgressPattern = Pattern.compile(Pattern.quote(this.name) + " \\(?(?<progress>[0-9.,]+[km]?)");
         this.world = world;
         this.number = number;
         this.taskType = type.trim();
@@ -97,11 +102,7 @@ public class Task {
         determineTaskAttributes();
         this.descriptor = TaskCollection.TryGetDescriptor(this.taskTarget);
         if (this.descriptor == null) {
-            System.out.println("UNIDENTIFIED TASK: " + this.description);
-        }
-        // Might break with numbers large enough to have a suffix, but doing ticket tasks at that point is a little silly...
-        if(isTicket) {
-            this.completed = this.progress.equals(this.targetAmount);
+            ConfiguredLogger.LogError(LOGGER, "UNIDENTIFIED TASK: " + this.description);
         }
     }
 
@@ -180,8 +181,12 @@ public class Task {
         return taskType;
     }
 
+    public boolean getCompletedStatus() {
+        return this.progress.equals(this.targetAmount);
+    }
+
     private String getSubLocation() {
-        if (this.world.equals("1")) return "";
+        if (this.world.equals("1")) return "" ;
         else {
             List<String> lush = List.of("Poison Slimes", "Cave Crawlers", "Lurkers", "Ancient Lurkers", "Crimsonite");
             List<String> veil = List.of("Spotters", "Verdemites", "Endermen", "Verdelith", "Shy");
@@ -267,7 +272,7 @@ public class Task {
         }
 
         if (this.taskTarget.equals("fish")){
-            return "2 Soarfish in a row without missing";
+            return "2 fish in a row without missing";
         }
 
         if (!this.color.equals("")) {
